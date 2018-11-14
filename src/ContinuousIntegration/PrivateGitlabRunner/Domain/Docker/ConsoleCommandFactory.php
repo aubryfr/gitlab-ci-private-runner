@@ -72,14 +72,14 @@ class ConsoleCommandFactory
         $command = "\"-c\" \"cp -R {$containerProject}/. {$containerProjectCopy}/";
 
         // Inject local variables
-        foreach ($job->variables() as $variable) {
-            // Export to environment variables
-            $command .= sprintf(
-                ' && export %s=\"%s\"',
-                $variable->key(),
-                $this->escapeScriptString($variable->value())
-            );
-        }
+//        foreach ($job->variables() as $variable) {
+//            // Export to environment variables
+//            $command .= sprintf(
+//                ' && export %s=\"%s\"',
+//                $variable->key(),
+//                $this->escapeScriptString($variable->value())
+//            );
+//        }
 
 
         foreach ($job->scripts() as $script) {

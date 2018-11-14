@@ -2,7 +2,10 @@
 
 namespace Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Runner;
 
+use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Configuration\GitlabCIConfiguration;
 use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Configuration\GitlabCIConfigurationFactory;
+use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Configuration\Job;
+use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Configuration\Variable;
 use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\Docker\ConsoleCommandFactory;
 use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\PrivateRunnerException;
 
@@ -60,8 +63,9 @@ class ParallelJobRunner
 
         foreach ($jobNames as $jobName) {
             $job     = $gitlabCIConfiguration->getJob($jobName);
+            $variables = $this->resolveVariables($job, $gitlabCIConfiguration);
             $command = $this->consoleCommandFactory->createDockerRunCommand(
-                $job, $gitlabCIConfiguration->variables(), $projectRootPath, $refName, $sleep, $volumes
+                $job, $variables, $projectRootPath, $refName, $sleep, $volumes
             );
 
             $process = $this->processRunner->runProcess($job, $command);
@@ -81,6 +85,40 @@ class ParallelJobRunner
             $jobNamesToString = implode(", ", $errorProcesses);
             throw new PrivateRunnerException("Failed jobs: {$jobNamesToString}");
         }
+    }
+
+    private function resolveVariables(Job $job, GitlabCIConfiguration $gitlabCIConfiguration)
+    {
+        // Resolve if local variable (a local variable could reference another one)
+        /** @var Variable[] $variables */
+        $variables = [];
+
+        foreach ($gitlabCIConfiguration->variables() as $pipelineVariable) {
+            $variables[$pipelineVariable->key()] = $pipelineVariable;
+        }
+
+        foreach ($job->variables() as $jobVariable) {
+//            var_dump($jobVariable->value());
+            $variable = $jobVariable;
+            // If the value contains variable references
+            if (strpos($jobVariable->value(), '$') !== false) {
+                $value = $jobVariable->value();
+                $value = preg_replace('/\$([\w_]+)/i', '${\\1}', $value);
+//                var_dump($value);
+                while (preg_match('/\$\{([\w_]+)\}/', $value, $matches) === 1) {
+                    $subVarToken = $matches[0];
+                    $varName = $matches[1];
+                    $newSubVarValue = isset($variables[$varName]) ? $variables[$varName]->value() : '';
+                    $value = str_replace($subVarToken, $newSubVarValue, $value);
+                    $variable = new Variable($jobVariable->key(), $value);
+//                    echo $value . PHP_EOL;
+                }
+            }
+//            echo "------" . PHP_EOL . PHP_EOL;
+            $variables[$jobVariable->key()] = $variable;
+        }
+
+        return $variables;
     }
 
     /**
