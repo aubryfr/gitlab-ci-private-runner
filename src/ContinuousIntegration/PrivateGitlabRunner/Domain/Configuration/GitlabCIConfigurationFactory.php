@@ -43,7 +43,7 @@ class GitlabCIConfigurationFactory
 
         $jobs = [];
         foreach ($parsedConfiguration as $name => $data) {
-            if (array_key_exists('image', $data)) {
+            if (is_array($data) && array_key_exists('image', $data)) {
                 $jobs[] = $this->createJob($name, $data);
             }
         }
