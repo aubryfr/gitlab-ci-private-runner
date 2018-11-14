@@ -71,13 +71,22 @@ class ConsoleCommandFactory
         $containerProjectCopy = self::CONTAINER_PROJECT_COPY;
         $command = "\"-c\" \"cp -R {$containerProject}/. {$containerProjectCopy}/";
         foreach ($job->scripts() as $script) {
-            $command .= " && {$script}";
+            $command .= " && " . $this->escapeScriptString($script);
         }
         $command .= $sleep ? " && sleep {$sleep}" : '';
         $command .= "\"";
 
         $dockerRunCommandBuilder = $dockerRunCommandBuilder->cmd($command);
         return $dockerRunCommandBuilder->toString();
+    }
+
+    private function escapeScriptString($script)
+    {
+        $script = str_replace('$', '\$', $script);
+        $script = str_replace('"', '\"', $script);
+        $script = str_replace('-', '\-', $script);
+
+        return $script;
     }
 
     /**
