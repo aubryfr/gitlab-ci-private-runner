@@ -33,13 +33,32 @@ class GitlabCIConfigurationFactory
         $this->yamlParser = $yamlParser;
     }
 
-    public function createFromYaml($yamlPath)
+    private function parseYaml($yamlPath)
     {
         if (!file_exists($yamlPath)) {
             throw new PrivateRunnerException(".gitlab-ci.yml doesn't exists under {$yamlPath} path.");
         }
 
         $parsedConfiguration = $this->yamlParser->parse(file_get_contents($yamlPath));
+
+        if (isset($parsedConfiguration['include'])) {
+            $basePath = dirname($yamlPath);
+            foreach ($parsedConfiguration['include'] as $includedFile) {
+                $includedFilePath = sprintf("%s/%s", $basePath, $includedFile);
+                $parsedConfiguration = array_merge(
+                    $parsedConfiguration,
+                    $this->parseYaml($includedFilePath)
+                );
+            }
+            unset($parsedConfiguration['include']);
+        }
+
+        return $parsedConfiguration;
+    }
+
+    public function createFromYaml($yamlPath)
+    {
+        $parsedConfiguration = $this->parseYaml($yamlPath);
 
         $jobs = [];
         foreach ($parsedConfiguration as $name => $data) {
