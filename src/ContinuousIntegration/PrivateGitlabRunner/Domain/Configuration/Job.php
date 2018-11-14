@@ -11,6 +11,8 @@ use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\PrivateRunnerExcepti
  */
 class Job
 {
+    use VariableAwareTrait;
+
     /**
      * @var string
      */
@@ -41,16 +43,18 @@ class Job
      *
      * @param string $jobName
      * @param string $imageName
-     * @param Stage  $stage
+     * @param Stage $stage
+     * @param array|Variable[] $variables
      * @param string[] $scripts
      * @param string[] $exceptList
      * @param string[] $onlyList
      */
-    public function __construct($jobName, $imageName, Stage $stage, $scripts, $exceptList, $onlyList)
+    public function __construct($jobName, $imageName, Stage $stage, $variables, $scripts, $exceptList, $onlyList)
     {
         $this->setJobName($jobName);
         $this->setImageName($imageName);
         $this->setStage($stage);
+        $this->setVariables($variables);
         $this->setScripts($scripts);
         $this->exceptList = $exceptList;
         $this->onlyList = $onlyList;

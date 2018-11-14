@@ -11,12 +11,14 @@ use Madkom\ContinuousIntegration\PrivateGitlabRunner\Domain\PrivateRunnerExcepti
  */
 class GitlabCIConfiguration
 {
+    use VariableAwareTrait;
+
     /** @var  Stage[] */
     private $stages;
+
     /** @var  Cache */
     private $cache;
-    /** @var  Variable[] */
-    private $variables;
+
     /** @var  Job[] */
     private $jobs;
 
@@ -52,13 +54,6 @@ class GitlabCIConfiguration
         return $this->cache;
     }
 
-    /**
-     * @return array|Variable[]
-     */
-    public function variables()
-    {
-        return $this->variables;
-    }
 
     /**
      * @return array|Job[]
@@ -134,21 +129,6 @@ class GitlabCIConfiguration
         $this->stages = $stages;
     }
 
-    /**
-     * @param array $variables
-     *
-     * @throws PrivateRunnerException
-     */
-    private function setVariables(array $variables)
-    {
-        foreach($variables as $variable) {
-            if (!($variable instanceof Variable)) {
-                throw new PrivateRunnerException("Passed variables should have type of variable");
-            }
-        }
-
-        $this->variables = $variables;
-    }
 
     /**
      * @param array $jobs

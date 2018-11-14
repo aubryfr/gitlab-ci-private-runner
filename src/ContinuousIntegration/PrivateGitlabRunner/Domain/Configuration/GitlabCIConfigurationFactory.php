@@ -108,6 +108,7 @@ class GitlabCIConfigurationFactory
             $jobName,
             $jobData['image'],
             $jobData['stage'],
+            isset($jobData['variables']) ? $this->createVariables($jobData['variables']) : [],
             $jobData['script'],
             isset($jobData['except']) ? $jobData['except'] : null,
             isset($jobData['only']) ? $jobData['only'] : null
