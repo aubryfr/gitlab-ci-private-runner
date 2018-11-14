@@ -125,7 +125,7 @@ class ConsoleCommandFactory
                 throw new PrivateRunnerException("Passed wrong mapping: {$volumeAsString} should be /data:/data");
             }
 
-            $volumes[] = new Volume($mappedVolume[0], $mappedVolume[1]);
+            $volumes[] = new Volume($mappedVolume[1], $mappedVolume[0]);
         }
 
         return $volumes;
