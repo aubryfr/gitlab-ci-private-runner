@@ -193,7 +193,7 @@ class DockerRunCommandBuilder
         $dockerRunCommand .= $this->workingDirectory ? " -w={$this->workingDirectory}" : '';
 
         foreach($this->environments as $envName => $envValue) {
-            $dockerRunCommand .= " -e {$envName}={$envValue}";
+            $dockerRunCommand .= " -e {$envName}=\"{$envValue}\"";
         }
 
         foreach($this->volumes as $containerPath => $hostPath) {
